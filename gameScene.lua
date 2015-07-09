@@ -7,7 +7,7 @@ display.setStatusBar(display.HiddenStatusBar)
 local composer = require( "composer" )
 local physics = require "physics";
 physics.start();
-physics.setGravity(0, 2);
+physics.setGravity(0, 1);
 
 local scene = composer.newScene()
 local sceneGroup = display.newGroup()
@@ -20,6 +20,9 @@ local dogs = {}
 local cats = {}
 local environmentGroup
 local barrier
+local barrierLeft
+local barrierRight
+local restartButton
 
 function scene:show( event )
 
@@ -36,19 +39,27 @@ function scene:show( event )
         barrier.alpha = 0
         physics.addBody(barrier, "static")
 
-        man = display.newImageRect("images/man.png", _W/6, _H/6 )
+        barrierLeft = display.newRect(0, _H/2, 1, _H + 1000)
+        barrierLeft.alpha = 0
+        physics.addBody(barrierLeft, "static")
+
+        barrierRight = display.newRect(_W, _H/2, 1, _H + 1000)
+        barrierRight.alpha = 0
+        physics.addBody(barrierRight, "static")
+
+        man = display.newImageRect("images/man.png", 47, 87)
         man.x = _W/2
         man.y = _H-50
         man.anchorX = 0.5
         man.anchorY = 1
 
-        man2 = display.newImageRect("images/man.png", _W/6, _H/6 )
+        man2 = display.newImageRect("images/man.png", 47, 87 )
         man2.x = _W/5
         man2.y = _H-50
         man2.anchorX = 0.5
         man2.anchorY = 1
 
-        man3 = display.newImageRect("images/man.png", _W/6, _H/6 )
+        man3 = display.newImageRect("images/man.png", 47, 87 )
         man3.x = _W/1.25
         man3.y = _H-50
         man3.anchorX = 0.5
@@ -62,31 +73,36 @@ function scene:show( event )
         environmentGroup:insert(man)
         environmentGroup:insert(man2)
         environmentGroup:insert(man3)
+        environmentGroup:insert(barrierLeft)
+        environmentGroup:insert(barrierRight)
         environmentGroup.isVisible = true
 
         function recycleAnimals(e)
-            e.target.x = 100
-            e.target.y = 100
+            e.target.x = math.random(_W/9,_W/1.125)
+            e.target.y = math.random(-1* _H/12 - 200,-1*_H/12)
             -- body
         end
         
         for i=0,2 do
-            cats[i] = display.newImageRect("images/cat.png", _W/6,_H/6)
+            cats[i] = display.newImageRect("images/cat.png", 75,60)
             --cats[i].x = 100
             --cats[i].y = 100
             environmentGroup:insert(cats[i])
             cats[i].x = math.random(_W/9,_W/1.125)
-            cats[i].y = math.random(-1* _H/12 - 500,-1*_H/12)
+            cats[i].y = math.random(-1* _H/12 - 200,-1*_H/12)
             cats[i]:addEventListener("tap", recycleAnimals)
+            cats[i].name = "enemy"
 
 
-            dogs[i] = display.newImageRect("images/dog1.png", _W/6, _H/6)
+            dogs[i] = display.newImageRect("images/dog1.png", 60, 75)
             environmentGroup:insert(dogs[i])
             dogs[i].x = math.random(_W/9, _W/1.125)
-            dogs[i].y = math.random(-1* _H/12 - 500,-1*_H/12)
+            dogs[i].y = math.random(-1* _H/12 - 200,-1*_H/12)
             dogs[i]:addEventListener("tap", recycleAnimals)
+            dogs[i].name = "enemy"
              
         end
+
 
         local counter = 0
         function spawnAnimals()
@@ -94,25 +110,32 @@ function scene:show( event )
             physics.addBody(dogs[counter], "dynamic")
             counter = counter + 1
         end
+
         timer.performWithDelay(3000, spawnAnimals, 3)
         
-
+                 
     end
 end
-
+    function onCollision(e)
+        if((e.object2.name == "enemy") and (e.object1 == barrier) and (e.phase == "began"))then
+            display.newText("Game Over!", _W/2, _H/2- 20 , native.systemFont, 30)
+            physics:stop()
+            Runtime:removeEventListener("collision", onCollision)
+        end
+    end
 function scene:hide( event )
     if (event.phase == "did") then 
         environmentGroup:removeSelf()
         environmentGroup = nil
+
     end
 end
-
 
 -- -------------------------------------------------------------------------------
 
 scene:addEventListener( "show", scene )
 scene:addEventListener( "hide", scene )
-
+Runtime:addEventListener("collision", onCollision)
 -- -------------------------------------------------------------------------------
 
 return scene
