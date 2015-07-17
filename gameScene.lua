@@ -114,8 +114,8 @@ function scene:show( event )
         timer.performWithDelay(3000, spawnAnimals, 3)
         
                  
+        end
     end
-end
     function onCollision(e)
         if((e.object2.name == "enemy") and (e.object1 == barrier) and (e.phase == "began"))then
             display.newText("Game Over!", _W/2, _H/2- 20 , native.systemFont, 30)
@@ -123,7 +123,7 @@ end
             Runtime:removeEventListener("collision", onCollision)
         end
     end
-function scene:hide( event )
+    function scene:hide( event )
     if (event.phase == "did") then 
         environmentGroup:removeSelf()
         environmentGroup = nil
